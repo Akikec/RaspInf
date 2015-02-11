@@ -126,13 +126,6 @@ public class PrefsActivity extends Activity {
         super.onResume();
     }
 
-    /*private void CreateSpinner(final Spinner spinner, final ArrayList<String> data, final String key , final int switch_id) {
-
-        ArrayAdapter<String> spinnerAdapterGroup = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, data);
-        spinner.setAdapter(spinnerAdapterGroup);
-
-    }*/
-
     private void GetSpinerListFromDB(Context cont,ArrayList<String> list,String course){
 
         RaspDB sqh = new RaspDB(cont);
