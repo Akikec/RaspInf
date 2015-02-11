@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">RaspInf</string>
+    <string name="action_settings">Settings</string>
+    <string name="but_student_in">Переход для Студента</string>
+    <string name="but_prepod_in">Переход для Препадователя</string>
+
+    <color name="background_color">#ff71abff</color>
+    <color name="but_background_color">#ffa9d6ff</color>
+    <color name="but_text_color">#ff2c6da8</color>
+
+    <string name="title_activity_student">StudentActivity</string>
+    <string name="hello_world">Nothing special!</string>
+    <string name="title_activity_prepod">PrepodActivity</string>
+    <string name="text">Выберите группу из списка:</string>
+    <string name="next_rasp">Перейти к просмотру расписания</string>
+    <string name="title_activity_past_rasp">PastRaspActivity</string>
+    <string name="title_activity_present_rasp">PresentRaspActivity</string>
+    <string name="title_activity_settings_rasp">SettingsRaspActivity</string>
+
+    <string name="TexViev1">Курс</string>
+    <string name="TextViev2">Группа</string>
+    <string name="group_name"> </string>
+    <string name="course">course</string>
+</resources>

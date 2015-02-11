@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+            android:key="@string/course"
+            android:title="Курс"
+            android:summary="Смена курса"
+            android:defaultValue="1"
+            android:entries="@array/text_course_id"
+            android:entryValues="@array/text_course_id"
+            android:dialogTitle="Выберите курс" />
+
+</PreferenceScreen>
