@@ -120,7 +120,7 @@ public class PrefsActivity extends Activity {
             spinner_course.setSelection(spinnerPostion);
             spinnerPostion = adapter_group.getPosition(compareValue_group);
             spinner_group.setSelection(spinnerPostion);
-            //spinnerPostion = 0;
+            spinnerPostion = 0;
         }
 
         super.onResume();
