@@ -35,11 +35,11 @@ public class PrefsActivity extends Activity {
         mCourse = mSettings.getString(MyRefs.COURSE, "");
         mGroup = mSettings.getString(MyRefs.GROUP,"");
 
-        groups_list = new ArrayList<String>();
+        groups_list = new ArrayList<>();
         spinner_group = (Spinner) findViewById(R.id.spinner_group);
 
         spinner_course = (Spinner) findViewById(R.id.spinner_course);
-        adapter_course = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item, PresentRaspActivity.mCourseArray);
+        adapter_course = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item, PresentRaspActivity.mCourseArray);
         spinner_course.setAdapter(adapter_course);
 
         spinner_course.setPrompt(mCourse);
@@ -61,9 +61,9 @@ public class PrefsActivity extends Activity {
                 editor.apply();
 
 
-                groups_list = new ArrayList<String>();
+                groups_list = new ArrayList<>();
                 GetSpinerListFromDB(getBaseContext(), groups_list, Integer.toString(position + 1));
-                adapter_group = new ArrayAdapter<String>(getBaseContext(),android.R.layout.simple_spinner_dropdown_item, groups_list);
+                adapter_group = new ArrayAdapter<>(getBaseContext(),android.R.layout.simple_spinner_dropdown_item, groups_list);
                 spinner_group.setAdapter(adapter_group);
                 adapter_group.notifyDataSetChanged();
 
@@ -110,30 +110,28 @@ public class PrefsActivity extends Activity {
     protected void onResume() {
 
         mSettings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        mCourse = mSettings.getString(MyRefs.COURSE, "");
-        mGroup = mSettings.getString(MyRefs.GROUP,"");
+        String compareValue_course = mSettings.getString(MyRefs.COURSE, "");
+        String compareValue_group = mSettings.getString(MyRefs.GROUP,"");
 
-        spinner_course.setPrompt(mCourse);
-        spinner_group.setPrompt(mGroup);
 
-        /*if (!compareValue.equals(null)) {
-            int spinnerPostion = adapter.getPosition(compareValue);
-            MySpinner.setSelection(spinnerPostion);
-            spinnerPostion = 0;
-        }*/
+
+        if (!compareValue_course.equals("")) {
+            int spinnerPostion = adapter_course.getPosition(compareValue_course);
+            spinner_course.setSelection(spinnerPostion);
+            spinnerPostion = adapter_group.getPosition(compareValue_group);
+            spinner_group.setSelection(spinnerPostion);
+            //spinnerPostion = 0;
+        }
 
         super.onResume();
     }
 
-    private void CreateSpinner(final Spinner spinner, final ArrayList<String> data, final String key , final int switch_id) {
+    /*private void CreateSpinner(final Spinner spinner, final ArrayList<String> data, final String key , final int switch_id) {
 
         ArrayAdapter<String> spinnerAdapterGroup = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, data);
         spinner.setAdapter(spinnerAdapterGroup);
 
-
-
-
-    }
+    }*/
 
     private void GetSpinerListFromDB(Context cont,ArrayList<String> list,String course){
 
