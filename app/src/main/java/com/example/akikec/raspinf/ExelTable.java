@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 public class ExelTable {
 
+    /*
+    Временое хранилище
+    */
     ArrayList<String> cellList;
 
     public  String getCellString(int id) {
