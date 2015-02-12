@@ -1,43 +1,26 @@
 package com.example.akikec.raspinf;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.inputmethodservice.Keyboard;
-import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.*;
+import android.view.animation.AnimationUtils;
+import android.widget.*;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellRangeAddress;
-
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class PresentRaspActivity extends Activity {
+public class PresentRaspActivity extends Activity implements View.OnTouchListener {
 
-    ArrayList<ExelTable> exelTablesList;
+    private final static int MOVE_LENGTH = 150;
+
     RaspDB sqh;
     SQLiteDatabase sqdb;
     String mDay;
@@ -45,8 +28,11 @@ public class PresentRaspActivity extends Activity {
     String mCourse;
     SharedPreferences mSettings;
     public static final String[] mCourseArray ={"1 Курс","2 Курс", "3 Курс","4 Курс"};
-    String [] dataDate = {"ПОНЕДЕЛЬНИК","ВТОРНИК","СРЕДА","ЧЕТВЕРГ", "ПЯТНИЦА","СУББОТА"};
+    String [] data_array = {"ПОНЕДЕЛЬНИК","ВТОРНИК","СРЕДА","ЧЕТВЕРГ", "ПЯТНИЦА","СУББОТА"};
     TextView group_Text;
+
+    private ViewFlipper flipper = null;
+    private float fromPosition;
 
 
 
@@ -57,39 +43,33 @@ public class PresentRaspActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_present_rasp);
 
-        File database=getApplicationContext().getDatabasePath(MyRefs.DATABASE_NAME);
-
-        //if (database.delete()){Log.i("Database", "Deleted");}
-
         group_Text = (TextView) findViewById(R.id.textViewGroup);
 
 
+        LinearLayout mainLayout = (LinearLayout) findViewById(R.id.main_layout);
+        mainLayout.setOnTouchListener(this);
 
+        // Получаем объект ViewFlipper
+        flipper = (ViewFlipper) findViewById(R.id.flipper);
 
-        if (!database.exists()) {
-            // Database does not exist so copy it from assets here
-            Log.i("Database", "Not Found");
+        // Создаем View и добавляем их в уже готовый flipper
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        int layouts[] = new int[]{ R.layout.day_1, R.layout.day_2, R.layout.day_3, R.layout.day_4 ,R.layout.day_5, R.layout.day_6};
+        for (int layout : layouts)
+            flipper.addView(inflater.inflate(layout, null));
 
-            for (int i = 1 ; i < 5;i++){
-
-                parseExcel(i);
-                FromExelToDB(i);
-                exelTablesList.clear();
-            }
-
-        } else {
-            Log.i("Database", "Found");
-
+        for(int i = 0 ;i<data_array.length;i++){
+            displayRasp(this,data_array[i],i+1);
         }
 
 
 
-        Spinner spinerDay = (Spinner) findViewById(R.id.spinner);
-        final ArrayList<String> spinerListDate = new ArrayList<String>();
+
+
+        /*Spinner spinerDay = (Spinner) findViewById(R.id.spinner);
+        final ArrayList<String> spinerListDate = new ArrayList<>();
         Collections.addAll(spinerListDate, dataDate);
-
-
-        CreateSpinner(this, spinerDay, spinerListDate,MyRefs.DAY);
+        CreateSpinner(this, spinerDay, spinerListDate,MyRefs.DAY);*/
 
     }
 
@@ -110,7 +90,7 @@ public class PresentRaspActivity extends Activity {
             intent.setClass(this, PrefsActivity.class);
             startActivity(intent);}
 
-        displayRasp(this);
+        //displayRasp(this);
 
         group_Text.setText(mGroup);
 
@@ -123,11 +103,11 @@ public class PresentRaspActivity extends Activity {
         super.onPause();
     }
 
-    private void CreateSpinner(final Context cont, Spinner spinner, final ArrayList<String> data,final String key) {
+    /*private void CreateSpinner(final Context cont, Spinner spinner, final ArrayList<String> data,final String key) {
 
 
 
-        ArrayAdapter<String> spinnerAdapterGroup = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, data);
+        ArrayAdapter<String> spinnerAdapterGroup = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, data);
         spinner.setAdapter(spinnerAdapterGroup);
 
 
@@ -155,14 +135,7 @@ public class PresentRaspActivity extends Activity {
             }
         });
 
-        spinner.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                return false;
-            }
-        });
-
-    }
+    }*/
 
     @Override
     protected void onStop() {
@@ -193,6 +166,42 @@ public class PresentRaspActivity extends Activity {
 
     }
 
+    public boolean onTouch(View view, MotionEvent event)
+    {
+        switch (event.getAction())
+        {
+            case MotionEvent.ACTION_DOWN:
+                fromPosition = event.getX();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float toPosition = event.getX();
+                // MOVE_LENGTH - расстояние по оси X, после которого можно переходить на след. экран
+                if ((fromPosition - MOVE_LENGTH) > toPosition)
+                {
+                    fromPosition = toPosition;
+                    flipper.setInAnimation(AnimationUtils.loadAnimation(this,R.anim.go_next_in));
+                    flipper.setOutAnimation(AnimationUtils.loadAnimation(this,R.anim.go_next_out));
+                    flipper.showNext();
+                }
+                else if ((fromPosition + MOVE_LENGTH) < toPosition)
+                {
+                    fromPosition = toPosition;
+                    flipper.setInAnimation(AnimationUtils.loadAnimation(this,R.anim.go_prev_in));
+                    flipper.setOutAnimation(AnimationUtils.loadAnimation(this,R.anim.go_prev_out));
+                    flipper.showPrevious();
+                }
+            /*case MotionEvent.ACTION_UP:
+                float toPosition_onUp = event.getX();
+                if (fromPosition == toPosition_onUp)
+                {
+
+                }*/
+            default:
+                break;
+        }
+        return true;
+    }
+
     /*@Override
     protected Dialog onCreateDialog(int id) {
 
@@ -221,45 +230,7 @@ public class PresentRaspActivity extends Activity {
     }*/
 
 
-    private void SendToDB(int course,String day,String time,String predmet,String group){
-
-
-        sqh = new RaspDB(getApplicationContext());
-        sqdb = sqh.getWritableDatabase();
-
-        String insertQuery = "INSERT INTO " + MyRefs.RASP_TABLE_NAME
-                + " (" + MyRefs.DAY + ", " + MyRefs.TIME + ", " + MyRefs.PREDMET + ", " + MyRefs.GROUP + ", " + MyRefs.COURSE +  " )"
-                + " VALUES ('" + day + "', '" + time + "', '" + predmet + "', '" + group + "', '" + String.valueOf(course) + "')";
-        sqdb.execSQL(insertQuery);
-
-        Log.i("SQL Query", insertQuery);
-
-        sqdb.close();
-        sqh.close();
-
-    }
-
-    private void FromExelToDB(int course){
-        ArrayList<String> tableDate = exelTablesList.get(0).getCellList() ;
-        ArrayList<String> tableTime = exelTablesList.get(1).getCellList() ;
-        if (tableTime.size()<tableDate.size()){tableTime.add("");}
-        String s = "";
-        for (int i=2;i<exelTablesList.size();i++ ) {
-            ArrayList<String> table = exelTablesList.get(i).getCellList() ;
-
-            for (int j = 1, l = table.size(); j < l; j++) {
-                if (!table.get(j).equals("0.0") && !s.equals(table.get(0))) {
-                    SendToDB(course, tableDate.get(j), tableTime.get(j), table.get(j),table.get(0));
-                }
-            }
-
-            s = table.get(0);
-        }
-
-    }
-
-
-    private void GetDataForListWiev(List<String> list){
+    private void GetDataForListWiev(List<String> list,String day){
 
         sqh = new RaspDB(getApplicationContext());
         sqdb = sqh.getWritableDatabase();
@@ -268,7 +239,7 @@ public class PresentRaspActivity extends Activity {
 
         String group = mSettings.getString(MyRefs.GROUP,"");
         String course = mSettings.getString(MyRefs.COURSE, "");
-        String day = mSettings.getString(MyRefs.DAY, "");
+        //String day = mSettings.getString(MyRefs.DAY, "");
 
         Log.i("Group", group);
 
@@ -294,15 +265,26 @@ public class PresentRaspActivity extends Activity {
 
 
 
-    private void displayRasp(Context cont) {
+    private void displayRasp(Context cont,String day,int i) {
 
 
-        List<String> myList = new ArrayList<String>();
-        GetDataForListWiev(myList);
+        String resName_List = "listView" + String.valueOf(i);
+        String resName_Text = "textView" + String.valueOf(i);
+        Log.i("name", resName_List);
+        int id_list_view = getResources().getIdentifier(resName_List, "id", "com.example.akikec.raspinf");
+        int id_text_view = getResources().getIdentifier(resName_Text, "id", "com.example.akikec.raspinf");
+        Log.i("name", Integer.toString(id_list_view));
+        List<String> myList = new ArrayList<>();
+        GetDataForListWiev(myList,day);
 
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(cont,android.R.layout.simple_list_item_1, myList);
-        ListView listView = (ListView) findViewById(R.id.listView);
+        TextView textView = (TextView) findViewById(id_text_view);
+
+        textView.setText(day);
+
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(cont,android.R.layout.simple_list_item_1, myList);
+        ListView listView = (ListView) findViewById(id_list_view);
         listView.setAdapter(dataAdapter);
+
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -314,100 +296,14 @@ public class PresentRaspActivity extends Activity {
                 return true;
             }
         });
+        listView.setOnTouchListener(this);
 
 
 
     }
 
 
-    private void parseExcel(int course) {
 
-        exelTablesList = new ArrayList<ExelTable>();
-
-        String resName = "kurs_" + String.valueOf(course);
-        Log.i("name", resName);
-        int id = getResources().getIdentifier(resName, "raw", "com.example.akikec.raspinf");
-
-
-
-        try {
-            // Create a workbook using the Input Stream
-            Workbook workbook = new HSSFWorkbook(getResources().openRawResource(id));
-            // Get the first sheet from workbook
-            Sheet mySheet = workbook.getSheetAt(0);
-
-            List<CellRangeAddress> regionsList = new ArrayList<CellRangeAddress>();
-            for(int i = 0; i < mySheet.getNumMergedRegions(); i++) {
-                regionsList.add(mySheet.getMergedRegion(i));
-            }
-
-            // We now need something to iterate through the cells
-            boolean isFirst = true;
-
-            Iterator<Row> rowIter = mySheet.rowIterator();
-            while(rowIter.hasNext()){
-
-                Row myRow = (Row) rowIter.next();
-
-                int collomIndex;
-                int rowIndex = myRow.getRowNum();
-
-                if(myRow.getRowNum() < 5) {
-                    continue;
-                }
-
-                Iterator<Cell> cellIter = myRow.cellIterator();
-                while(cellIter.hasNext()){
-
-
-
-                    Cell myCell = (Cell) cellIter.next();
-                    Cell dataCell = myCell;
-                    String cellValue = "";
-                    collomIndex = myCell.getColumnIndex();
-                    ExelTable table;
-                    ArrayList<String> stringList;
-
-                    if (collomIndex>10){break;}
-
-                    if (isFirst) {table = new ExelTable(); stringList = new ArrayList<String>();}else {table = exelTablesList.get(collomIndex);stringList=table.getCellList();}
-
-
-                    for(CellRangeAddress region : regionsList) {
-                        if(region.isInRange(myCell.getRowIndex(), collomIndex)) {
-                            int myRowNum = region.getFirstRow();
-                            int myColNum = region.getFirstColumn();
-                            dataCell = mySheet.getRow(myRowNum).getCell(myColNum);
-                            break;
-                        }
-                    }
-
-                    // Check for cell Type
-                    if(dataCell.getCellType() == Cell.CELL_TYPE_STRING){
-                        cellValue = dataCell.getStringCellValue();
-                    }
-                    else {
-                        cellValue = String.valueOf(dataCell.getNumericCellValue());
-                    }
-
-                    stringList.add(cellValue);
-                    table.setCellList(stringList);
-
-                    if (isFirst){exelTablesList.add(table);}
-
-                    Log.v("Table " + resName + ": ",cellValue + " ID: " + rowIndex + "||" + collomIndex );
-
-                }
-                if(isFirst){isFirst=false;}
-            }
-
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
 
 
 }

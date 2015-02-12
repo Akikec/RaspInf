@@ -115,13 +115,13 @@ public class PrefsActivity extends Activity {
 
 
 
-        if (!compareValue_course.equals("")) {
+        /*if (!compareValue_course.equals("")) {
             int spinnerPostion = adapter_course.getPosition(compareValue_course);
             spinner_course.setSelection(spinnerPostion);
             spinnerPostion = adapter_group.getPosition(compareValue_group);
             spinner_group.setSelection(spinnerPostion);
             spinnerPostion = 0;
-        }
+        }*/
 
         super.onResume();
     }
