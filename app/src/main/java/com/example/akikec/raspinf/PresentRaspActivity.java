@@ -26,6 +26,7 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
     String mDay;
     String mGroup;
     String mCourse;
+    int mFliperID;
     SharedPreferences mSettings;
     public static final String[] mCourseArray ={"1 Курс","2 Курс", "3 Курс","4 Курс"};
     String [] data_array = {"ПОНЕДЕЛЬНИК","ВТОРНИК","СРЕДА","ЧЕТВЕРГ", "ПЯТНИЦА","СУББОТА"};
@@ -46,13 +47,13 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
         group_Text = (TextView) findViewById(R.id.textViewGroup);
 
 
-        LinearLayout mainLayout = (LinearLayout) findViewById(R.id.main_layout);
-        mainLayout.setOnTouchListener(this);
+        //LinearLayout mainLayout = (LinearLayout) findViewById(R.id.present_main_layout);
+        //mainLayout.setOnTouchListener(this);
+        View contentView = findViewById(R.id.present_main_layout);
+        contentView.setOnTouchListener(this);
 
         // Получаем объект ViewFlipper
         flipper = (ViewFlipper) findViewById(R.id.flipper);
-
-        // Создаем View и добавляем их в уже готовый flipper
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         int layouts[] = new int[]{ R.layout.day_1, R.layout.day_2, R.layout.day_3, R.layout.day_4 ,R.layout.day_5, R.layout.day_6};
         for (int layout : layouts)
@@ -62,14 +63,9 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
             displayRasp(this,data_array[i],i+1);
         }
 
+        mFliperID = mSettings.getInt(MyRefs.FLIPER_ID, 0);
 
-
-
-
-        /*Spinner spinerDay = (Spinner) findViewById(R.id.spinner);
-        final ArrayList<String> spinerListDate = new ArrayList<>();
-        Collections.addAll(spinerListDate, dataDate);
-        CreateSpinner(this, spinerDay, spinerListDate,MyRefs.DAY);*/
+        flipper.setDisplayedChild(mFliperID);
 
     }
 
@@ -82,18 +78,16 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
         mCourse = mSettings.getString(MyRefs.COURSE, "");
         mDay = mSettings.getString(MyRefs.DAY, "ПОНЕДЕЛЬНИК");
         mGroup = mSettings.getString(MyRefs.GROUP,"");
+        mFliperID = mSettings.getInt(MyRefs.FLIPER_ID, 0);
 
-
+        flipper.setDisplayedChild(mFliperID);
 
         if (mCourse.equals("")){
             Intent intent = new Intent();
             intent.setClass(this, PrefsActivity.class);
             startActivity(intent);}
 
-        //displayRasp(this);
-
         group_Text.setText(mGroup);
-
 
         super.onResume();
     }
@@ -102,40 +96,6 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
     protected void onPause() {
         super.onPause();
     }
-
-    /*private void CreateSpinner(final Context cont, Spinner spinner, final ArrayList<String> data,final String key) {
-
-
-
-        ArrayAdapter<String> spinnerAdapterGroup = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, data);
-        spinner.setAdapter(spinnerAdapterGroup);
-
-
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                String selectedItem = parent.getItemAtPosition(position).toString();
-
-                Spinner mySpiner = (Spinner) findViewById(R.id.spinner);
-                mySpiner.setPrompt(selectedItem);
-
-                SharedPreferences.Editor editor = mSettings.edit();
-                editor.putString(key, selectedItem);
-                Log.v("String settnigs", key + " || " + selectedItem);
-                editor.apply();
-
-                displayRasp(cont);
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-    }*/
 
     @Override
     protected void onStop() {
@@ -182,6 +142,14 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
                     flipper.setInAnimation(AnimationUtils.loadAnimation(this,R.anim.go_next_in));
                     flipper.setOutAnimation(AnimationUtils.loadAnimation(this,R.anim.go_next_out));
                     flipper.showNext();
+
+                    SharedPreferences.Editor editor = mSettings.edit();
+                    editor.putInt(MyRefs.FLIPER_ID, flipper.getDisplayedChild() );
+                    Log.i("String settnigs", MyRefs.FLIPER_ID + " || " + Integer.toString(flipper.getDisplayedChild()));
+                    editor.apply();
+                    return true;
+
+
                 }
                 else if ((fromPosition + MOVE_LENGTH) < toPosition)
                 {
@@ -189,17 +157,17 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
                     flipper.setInAnimation(AnimationUtils.loadAnimation(this,R.anim.go_prev_in));
                     flipper.setOutAnimation(AnimationUtils.loadAnimation(this,R.anim.go_prev_out));
                     flipper.showPrevious();
-                }
-            /*case MotionEvent.ACTION_UP:
-                float toPosition_onUp = event.getX();
-                if (fromPosition == toPosition_onUp)
-                {
 
-                }*/
+                    SharedPreferences.Editor editor = mSettings.edit();
+                    editor.putInt(MyRefs.FLIPER_ID, flipper.getDisplayedChild() );
+                    Log.i("String settnigs", MyRefs.FLIPER_ID + " || " + Integer.toString(flipper.getDisplayedChild()));
+                    editor.apply();
+                    return true;
+                }
             default:
                 break;
         }
-        return true;
+        return false;
     }
 
     /*@Override
@@ -285,6 +253,7 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
         ListView listView = (ListView) findViewById(id_list_view);
         listView.setAdapter(dataAdapter);
 
+        listView.setOnTouchListener(this);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
@@ -296,7 +265,7 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
                 return true;
             }
         });
-        listView.setOnTouchListener(this);
+
 
 
 

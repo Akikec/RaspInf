@@ -42,7 +42,17 @@ public class PrefsActivity extends Activity {
         adapter_course = new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item, PresentRaspActivity.mCourseArray);
         spinner_course.setAdapter(adapter_course);
 
-        spinner_course.setPrompt(mCourse);
+        groups_list = new ArrayList<>();
+        GetSpinerListFromDB(getBaseContext(), groups_list, mGroup);
+        adapter_group = new ArrayAdapter<>(getBaseContext(),android.R.layout.simple_spinner_dropdown_item, groups_list);
+        spinner_group.setAdapter(adapter_group);
+
+        if (!mCourse.equals("")) {
+            int spinnerPosition = adapter_course.getPosition(mCourse);
+            spinner_course.setSelection(spinnerPosition);
+            spinnerPosition = adapter_group.getPosition(mGroup);
+            spinner_group.setSelection(spinnerPosition);
+        }
 
         spinner_course.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -110,18 +120,17 @@ public class PrefsActivity extends Activity {
     protected void onResume() {
 
         mSettings = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        String compareValue_course = mSettings.getString(MyRefs.COURSE, "");
-        String compareValue_group = mSettings.getString(MyRefs.GROUP,"");
+        mCourse = mSettings.getString(MyRefs.COURSE, "");
+        mGroup = mSettings.getString(MyRefs.GROUP,"");
 
 
 
-        /*if (!compareValue_course.equals("")) {
-            int spinnerPostion = adapter_course.getPosition(compareValue_course);
+        if (!mCourse.equals("")) {
+            int spinnerPostion = adapter_course.getPosition(mCourse);
             spinner_course.setSelection(spinnerPostion);
-            spinnerPostion = adapter_group.getPosition(compareValue_group);
+            spinnerPostion = adapter_group.getPosition(mGroup);
             spinner_group.setSelection(spinnerPostion);
-            spinnerPostion = 0;
-        }*/
+        }
 
         super.onResume();
     }

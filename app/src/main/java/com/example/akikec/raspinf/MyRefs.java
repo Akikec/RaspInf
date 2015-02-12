@@ -11,4 +11,5 @@ public class MyRefs {
     public static final String PREDMET = "predmet";
     public static final String GROUP ="group_id";
     public static final String COURSE ="course";
+    public static final String FLIPER_ID = "flipperID";
 }
