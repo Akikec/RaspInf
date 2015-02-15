@@ -1,15 +1,28 @@
 package com.example.akikec.raspinf;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -18,14 +31,14 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 
 public class MainActivity extends Activity {
-    ArrayList<ExelTable> exelTablesList;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,18 +46,17 @@ public class MainActivity extends Activity {
 
         File database=getApplicationContext().getDatabasePath(MyRefs.DATABASE_NAME);
 
-        //if (database.delete()){Log.i("Database", "Deleted");
+        if (database.delete()){Log.i("Database", "Deleted");}
         Log.i("Database", String.valueOf(getDatabasePath(MyRefs.DATABASE_NAME)) );
+        String url ="http://raspinf.my1.ru/kurs_";
 
         if (!database.exists()) {
             // Database does not exist so copy it from assets here
             Log.i("Database", "Not Found");
 
             for (int i = 1 ; i < 5;i++){
-
-                parseExcel(i);
-                FromExelToDB(i);
-                exelTablesList.clear();
+                excelURL(url+i+".xls",i);
+                //exelTablesList.clear();
             }
 
         } else {
@@ -89,19 +101,97 @@ public class MainActivity extends Activity {
         toast.show();
     }
 
-    private void parseExcel(int course) {
+    public void excelURL(String url,int i) {
+        Log.v("excelURL:", url);
+        new ExcelURL(i).execute(url);
+    }
 
-        exelTablesList = new ArrayList<ExelTable>();
+    private class ExcelURL extends AsyncTask<String, Void, String> {
+        private static final int REGISTRATION_TIMEOUT = 3 * 1000;
+        private static final int WAIT_TIMEOUT = 30 * 1000;
+        private final HttpClient httpclient = new DefaultHttpClient();
+        final HttpParams params = httpclient.getParams();
+        HttpResponse response;
+        private String content = null;
+        private ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+        int course;
+        String URL;
 
-        String resName = "kurs_" + String.valueOf(course);
+        private ExcelURL(int i){
+            this.course = i;
+        }
+
+        protected void onPreExecute() {
+            dialog.setMessage("Getting your data... Please wait...");
+            dialog.show();
+        }
+
+        protected String doInBackground(String... urls) {
+
+            URL = urls[0];
+                try {
+                    Log.e("AsyncTask: ", Integer.toString(course)+" || "+ URL);
+                    HttpConnectionParams.setConnectionTimeout(params, REGISTRATION_TIMEOUT);
+                    HttpConnectionParams.setSoTimeout(params, WAIT_TIMEOUT);
+                    ConnManagerParams.setTimeout(params, WAIT_TIMEOUT);
+                    ArrayList<ExelTable> exelTablesList;
+                    HttpGet httpGet = new HttpGet(URL);
+                    response = httpclient.execute(httpGet);
+
+                    StatusLine statusLine = response.getStatusLine();
+                    if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+                        Log.e("AsyncTask_OK: ", "Connection establish");
+                        exelTablesList = parseExcel(response.getEntity().getContent());
+                        FromExelToDB(exelTablesList,course);
+                    } else {
+                        Log.w("HTTP1:", statusLine.getReasonPhrase());
+                        response.getEntity().getContent().close();
+                        throw new IOException(statusLine.getReasonPhrase());
+                    }
+                } catch (ClientProtocolException e) {
+                    Log.w("HTTP2:", e);
+                    content = e.getMessage();
+                    cancel(true);
+                } catch (IOException e) {
+                    Log.w("HTTP3:", e);
+                    content = e.getMessage();
+                    cancel(true);
+                } catch (Exception e) {
+                    Log.w("HTTP4:", e);
+                    content = e.getMessage();
+                    cancel(true);
+                }
+
+            return content;
+        }
+
+        protected void onCancelled() {
+            dialog.dismiss();
+            Toast toast = Toast.makeText(MainActivity.this, "Error connecting to Server", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP, 25, 400);
+            toast.show();
+
+        }
+
+        protected void onPostExecute(String content) {
+            dialog.dismiss();
+        }
+    }
+
+
+    private ArrayList<ExelTable> parseExcel(InputStream fis) {
+
+        ArrayList<ExelTable> exelTablesList = new ArrayList<ExelTable>();
+
+        /*String resName = "kurs_" + String.valueOf(course);
         Log.i("name", resName);
         int id = getResources().getIdentifier(resName, "raw", "com.example.akikec.raspinf");
-
+        */
 
 
         try {
-            // Create a workbook using the Input Stream
-            Workbook workbook = new HSSFWorkbook(getResources().openRawResource(id));
+            // Create a workbook using the Input Stream || getResources().openRawResource(id)
+            Workbook workbook = new HSSFWorkbook(fis);
             // Get the first sheet from workbook
             Sheet mySheet = workbook.getSheetAt(0);
 
@@ -164,7 +254,7 @@ public class MainActivity extends Activity {
 
                     if (isFirst){exelTablesList.add(table);}
 
-                    Log.v("Table " + resName + ": ",cellValue + " ID: " + rowIndex + "||" + collomIndex );
+                    Log.v("Table " + fis.toString() + ": ",cellValue + " ID: " + rowIndex + "||" + collomIndex );
 
                 }
                 if(isFirst){isFirst=false;}
@@ -175,6 +265,8 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return  exelTablesList;
 
     }
 
@@ -196,7 +288,7 @@ public class MainActivity extends Activity {
 
     }
 
-    private void FromExelToDB(int course){
+    private void FromExelToDB(ArrayList<ExelTable> exelTablesList,int course){
         ArrayList<String> tableDate = exelTablesList.get(0).getCellList() ;
         ArrayList<String> tableTime = exelTablesList.get(1).getCellList() ;
         if (tableTime.size()<tableDate.size()){tableTime.add("");}
