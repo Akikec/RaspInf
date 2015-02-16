@@ -1,4 +1,4 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;

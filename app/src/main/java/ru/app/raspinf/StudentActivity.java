@@ -1,20 +1,9 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import android.app.TabActivity;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
-import android.widget.Adapter;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.TabHost;
-import android.widget.Toast;
 
 
 public class StudentActivity extends TabActivity {

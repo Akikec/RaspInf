@@ -1,4 +1,4 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
