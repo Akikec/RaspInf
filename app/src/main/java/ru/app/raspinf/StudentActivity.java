@@ -24,16 +24,11 @@ public class StudentActivity extends TabActivity {
         TabHost.TabSpec tabSpec;
 
         tabSpec = tabHost.newTabSpec("tag1");
-        tabSpec.setIndicator("Прошлая неделя");
-        tabSpec.setContent(new Intent(this, PastRaspActivity.class));
-        tabHost.addTab(tabSpec);
-
-        tabSpec = tabHost.newTabSpec("tag2");
-        tabSpec.setIndicator("Эта неделя");
+        tabSpec.setIndicator("Расписание");
         tabSpec.setContent(new Intent(this, PresentRaspActivity.class));
         tabHost.addTab(tabSpec);
 
-        tabSpec = tabHost.newTabSpec("tag3");
+        tabSpec = tabHost.newTabSpec("tag2");
         tabSpec.setIndicator("Настройки");
         tabSpec.setContent(new Intent(this, PrefsActivity.class));
         tabHost.addTab(tabSpec);
