@@ -23,6 +23,7 @@ public class StudentActivity extends TabActivity {
 
         TabHost.TabSpec tabSpec;
 
+
         tabSpec = tabHost.newTabSpec("tag1");
         tabSpec.setIndicator("Расписание");
         tabSpec.setContent(new Intent(this, PresentRaspActivity.class));
