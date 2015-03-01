@@ -96,6 +96,16 @@ public class MainActivity extends Activity {
         new ExcelURL(i).execute(url);
     }
 
+    public void onClick_Refresh(View view) {
+        RaspDB sqh = new RaspDB(getApplicationContext());
+        SQLiteDatabase sqdb = sqh.getWritableDatabase();
+        sqh.onUpgrade(sqdb,1,1);
+
+        for (int i = 1; i < 5; i++) {
+            excelURL(url + i + ".xls", i);
+        }
+    }
+
     private class ChechUpdate extends AsyncTask<String, Void, Boolean> {
 
         private static final int REGISTRATION_TIMEOUT = 3 * 1000;
