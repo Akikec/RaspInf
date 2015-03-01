@@ -1,4 +1,4 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

@@ -1,11 +1,12 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.support.v7.app.ActionBarActivity;
+import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -30,39 +31,28 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 
 public class MainActivity extends Activity {
+
+    SharedPreferences mSettings;
+    String url;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        File database=getApplicationContext().getDatabasePath(MyRefs.DATABASE_NAME);
-
-        if (database.delete()){Log.i("Database", "Deleted");}
+        mSettings = PreferenceManager.getDefaultSharedPreferences(this);
+        //!database.exists()
         Log.i("Database", String.valueOf(getDatabasePath(MyRefs.DATABASE_NAME)) );
-        String url ="http://raspinf.my1.ru/kurs_";
+        url ="http://raspinf.my1.ru/kurs_";
+        new ChechUpdate().execute("http://raspinf.my1.ru/update.txt");
 
-        if (!database.exists()) {
-            // Database does not exist so copy it from assets here
-            Log.i("Database", "Not Found");
-
-            for (int i = 1 ; i < 5;i++){
-                excelURL(url+i+".xls",i);
-                //exelTablesList.clear();
-            }
-
-        } else {
-            Log.i("Database", "Found");
-
-        }
 
     }
 
@@ -106,6 +96,100 @@ public class MainActivity extends Activity {
         new ExcelURL(i).execute(url);
     }
 
+    private class ChechUpdate extends AsyncTask<String, Void, Boolean> {
+
+        private static final int REGISTRATION_TIMEOUT = 3 * 1000;
+        private static final int WAIT_TIMEOUT = 30 * 1000;
+        private final HttpClient httpclient = new DefaultHttpClient();
+        final HttpParams params = httpclient.getParams();
+        HttpResponse response;
+        private ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+        Boolean update = false;
+        String URL;
+
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Check version... Please wait...");
+            dialog.show();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... urls) {
+            URL = urls[0];
+            try {
+                HttpConnectionParams.setConnectionTimeout(params, REGISTRATION_TIMEOUT);
+                HttpConnectionParams.setSoTimeout(params, WAIT_TIMEOUT);
+                ConnManagerParams.setTimeout(params, WAIT_TIMEOUT);
+                HttpGet httpGet = new HttpGet(URL);
+                response = httpclient.execute(httpGet);
+                StatusLine statusLine = response.getStatusLine();
+                if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+
+                    String version = "";
+
+                    BufferedReader buffer = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                   String s;
+                    while ((s = buffer.readLine()) != null) {
+                        version += s;
+                    }
+
+                    Log.e("AsyncTask_Version: ", version);
+
+                    if(!mSettings.getString("version","").equals(version)){
+                        Log.e("AsyncTask_OK: ", "Version check complete version: " + version + " updating db" );
+                        update = true;
+                        SharedPreferences.Editor editor = mSettings.edit();
+                        editor.putString("version", version);
+                        editor.apply();
+                    }
+
+                    Log.e("AsyncTask_OK: ", "Version check complete version: " + version + " update not rescued" );
+
+
+                } else {
+                    Log.w("HTTP1:", statusLine.getReasonPhrase());
+                    response.getEntity().getContent().close();
+                    throw new IOException(statusLine.getReasonPhrase());
+                }
+            } catch (ClientProtocolException e) {
+                Log.w("HTTP2:", e);
+                cancel(true);
+            } catch (IOException e) {
+                Log.w("HTTP3:", e);
+                cancel(true);
+            } catch (Exception e) {
+                Log.w("HTTP4:", e);
+                cancel(true);
+            }
+
+            return update;
+        }
+
+
+        protected void onCancelled() {
+            dialog.dismiss();
+            Toast toast = Toast.makeText(MainActivity.this, "Error connecting to Server", Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP, 25, 400);
+            toast.show();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean b) {
+
+            if(update) {
+
+                RaspDB sqh = new RaspDB(getApplicationContext());
+                SQLiteDatabase sqdb = sqh.getWritableDatabase();
+                sqh.onUpgrade(sqdb,1,1);
+
+                for (int i = 1; i < 5; i++) {
+                    excelURL(url + i + ".xls", i);
+                }
+            }
+            dialog.dismiss();
+        }
+    }
+
     private class ExcelURL extends AsyncTask<String, Void, String> {
         private static final int REGISTRATION_TIMEOUT = 3 * 1000;
         private static final int WAIT_TIMEOUT = 30 * 1000;
@@ -121,11 +205,14 @@ public class MainActivity extends Activity {
             this.course = i;
         }
 
+        @Override
         protected void onPreExecute() {
-            dialog.setMessage("Getting your data... Please wait...");
+            dialog.setMessage("Updating... Course "+ Integer.toString(course) +" Please wait...");
+            Log.e("AsyncTask_OK: ", "Version check complete update " + Integer.toString(course) );
             dialog.show();
         }
 
+        @Override
         protected String doInBackground(String... urls) {
 
             URL = urls[0];
@@ -173,7 +260,8 @@ public class MainActivity extends Activity {
 
         }
 
-        protected void onPostExecute(String content) {
+        protected void onPostExecute(String b) {
+
             dialog.dismiss();
         }
     }
@@ -181,7 +269,7 @@ public class MainActivity extends Activity {
 
     private ArrayList<ExelTable> parseExcel(InputStream fis) {
 
-        ArrayList<ExelTable> exelTablesList = new ArrayList<ExelTable>();
+        ArrayList<ExelTable> exelTablesList = new ArrayList<>();
 
         /*String resName = "kurs_" + String.valueOf(course);
         Log.i("name", resName);
@@ -195,7 +283,7 @@ public class MainActivity extends Activity {
             // Get the first sheet from workbook
             Sheet mySheet = workbook.getSheetAt(0);
 
-            List<CellRangeAddress> regionsList = new ArrayList<CellRangeAddress>();
+            List<CellRangeAddress> regionsList = new ArrayList<>();
             for(int i = 0; i < mySheet.getNumMergedRegions(); i++) {
                 regionsList.add(mySheet.getMergedRegion(i));
             }
@@ -206,10 +294,10 @@ public class MainActivity extends Activity {
             Iterator<Row> rowIter = mySheet.rowIterator();
             while(rowIter.hasNext()){
 
-                Row myRow = (Row) rowIter.next();
+                Row myRow = rowIter.next();
 
                 int collomIndex;
-                int rowIndex = myRow.getRowNum();
+                //int rowIndex = myRow.getRowNum();
 
                 if(myRow.getRowNum() < 5) {
                     continue;
@@ -220,16 +308,16 @@ public class MainActivity extends Activity {
 
 
 
-                    Cell myCell = (Cell) cellIter.next();
+                    Cell myCell = cellIter.next();
                     Cell dataCell = myCell;
-                    String cellValue = "";
+                    String cellValue;
                     collomIndex = myCell.getColumnIndex();
                     ExelTable table;
                     ArrayList<String> stringList;
 
                     if (collomIndex>10){break;}
 
-                    if (isFirst) {table = new ExelTable(); stringList = new ArrayList<String>();}else {table = exelTablesList.get(collomIndex);stringList=table.getCellList();}
+                    if (isFirst) {table = new ExelTable(); stringList = new ArrayList<>();}else {table = exelTablesList.get(collomIndex);stringList=table.getCellList();}
 
 
                     for(CellRangeAddress region : regionsList) {
@@ -254,7 +342,7 @@ public class MainActivity extends Activity {
 
                     if (isFirst){exelTablesList.add(table);}
 
-                    Log.v("Table " + fis.toString() + ": ",cellValue + " ID: " + rowIndex + "||" + collomIndex );
+                    //Log.v("Table " + fis.toString() + ": ",cellValue + " ID: " + rowIndex + "||" + collomIndex );
 
                 }
                 if(isFirst){isFirst=false;}
@@ -281,7 +369,7 @@ public class MainActivity extends Activity {
                 + " VALUES ('" + day + "', '" + time + "', '" + predmet + "', '" + group + "', '" + String.valueOf(course) + "')";
         sqdb.execSQL(insertQuery);
 
-        Log.i("SQL Query", insertQuery);
+        //Log.i("SQL Query", insertQuery);
 
         sqdb.close();
         sqh.close();
@@ -297,8 +385,8 @@ public class MainActivity extends Activity {
             ArrayList<String> table = exelTablesList.get(i).getCellList() ;
 
             for (int j = 1, l = table.size(); j < l; j++) {
-                if (!table.get(j).equals("0.0") && !s.equals(table.get(0))) {
-                    SendToDB(course, tableDate.get(j), tableTime.get(j), table.get(j),table.get(0));
+                if (!table.get(j).equals("0.0") && !table.get(j).equals(" ") && !s.equals(table.get(0))) {
+                    SendToDB(course, tableDate.get(j).substring(0, tableDate.get(j).indexOf(" ")), tableTime.get(j), table.get(j),table.get(0));
                 }
             }
 

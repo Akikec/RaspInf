@@ -1,4 +1,4 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import java.util.ArrayList;
 

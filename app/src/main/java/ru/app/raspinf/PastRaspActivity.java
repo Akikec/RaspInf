@@ -1,4 +1,4 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;

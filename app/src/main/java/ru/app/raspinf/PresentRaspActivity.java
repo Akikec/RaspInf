@@ -1,4 +1,4 @@
-package com.example.akikec.raspinf;
+package ru.app.raspinf;
 
 import android.app.Activity;
 import android.content.Context;
@@ -44,11 +44,9 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_present_rasp);
 
+        mSettings = PreferenceManager.getDefaultSharedPreferences(this);
+
         group_Text = (TextView) findViewById(R.id.textViewGroup);
-
-
-        //LinearLayout mainLayout = (LinearLayout) findViewById(R.id.present_main_layout);
-        //mainLayout.setOnTouchListener(this);
         View contentView = findViewById(R.id.present_main_layout);
         contentView.setOnTouchListener(this);
 
@@ -215,7 +213,7 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
                 + " WHERE " + MyRefs.GROUP + " = '" + group
                 + "' AND " + MyRefs.DAY + " = '" + day
                 + "' AND " + MyRefs.COURSE + " = '" + course
-                + "' GROUP BY " + MyRefs.TIME ;
+                + "'";// GROUP BY " + MyRefs.TIME ;
 
         Log.i("SQL Query", query);
         Cursor cursorForIteration = sqdb.rawQuery(query, null);
@@ -239,8 +237,8 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
         String resName_List = "listView" + String.valueOf(i);
         String resName_Text = "textView" + String.valueOf(i);
         Log.i("name", resName_List);
-        int id_list_view = getResources().getIdentifier(resName_List, "id", "com.example.akikec.raspinf");
-        int id_text_view = getResources().getIdentifier(resName_Text, "id", "com.example.akikec.raspinf");
+        int id_list_view = getResources().getIdentifier(resName_List, "id", "ru.app.raspinf");
+        int id_text_view = getResources().getIdentifier(resName_Text, "id", "ru.app.raspinf");
         Log.i("name", Integer.toString(id_list_view));
         List<String> myList = new ArrayList<>();
         GetDataForListWiev(myList,day);
