@@ -84,11 +84,11 @@ public class MainActivity extends Activity {
             startActivity(sendStudent);
     }
     public void onClick_Prepod(View view) {
-        //Intent sendPrepod = new Intent(MainActivity.this,PrepodActivity.class);
-        //startActivity(sendPrepod);
-        Toast toast = Toast.makeText(getApplicationContext(),
-                "Функция не доступна", Toast.LENGTH_LONG);
-        toast.show();
+        Intent sendPrepod = new Intent(MainActivity.this,PrepodActivity.class);
+        startActivity(sendPrepod);
+//        Toast toast = Toast.makeText(getApplicationContext(),
+//                "Функция не доступна", Toast.LENGTH_LONG);
+//        toast.show();
     }
 
     public void excelURL(String url,int i) {
