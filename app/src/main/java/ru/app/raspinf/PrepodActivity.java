@@ -51,7 +51,8 @@ public class PrepodActivity extends ActionBarActivity {
                 Spinner mySpinner = (Spinner) findViewById(R.id.spinner_prepod);
                 mySpinner.setPrompt(selectedItem);
                 // показываем позиция нажатого элемента
-                Toast.makeText(getBaseContext(), "Выбранный Преподаватель = " + position, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), "Выбранный Преподаватель = " + selectedItem, Toast.LENGTH_SHORT).show();
+                GetDataForListWiev(null,selectedItem,"день");
             }
             @Override
             public void onNothingSelected(AdapterView<?> arg0) {
@@ -59,23 +60,23 @@ public class PrepodActivity extends ActionBarActivity {
         });
     }
 
-    private void GetDataForListWiev(List<String> list,String day){
+    private void GetDataForListWiev(List<String> list,String prepodname,String day){
 
         sqh = new RaspDB(getApplicationContext());
         sqdb = sqh.getWritableDatabase();
 
-        mSettings = PreferenceManager.getDefaultSharedPreferences(this);
+        //mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
-        String prepod = mSettings.getString(MyRefs.COURSE, "");
+        //String prepod = mSettings.getString(MyRefs.COURSE, "");
         //String day = mSettings.getString(MyRefs.DAY, "");
 
-        Log.i("Group", group);
+        //Log.i("Group", group);
 
         String query = "SELECT " + MyRefs.TIME + ", " + MyRefs.PREDMET + " FROM " + MyRefs.RASP_TABLE_NAME
-                + " WHERE " + MyRefs.GROUP + " = '" + group
+                + " WHERE " //+ MyRefs.GROUP + " = '" + group
                 + "' AND " + MyRefs.DAY + " = '" + day
-                + "' AND " + MyRefs.COURSE + " = '" + course
-                + "'";// GROUP BY " + MyRefs.TIME ;
+                + "' AND " + MyRefs.PREDMET + " = '%" + prepodname
+                + "%'";// GROUP BY " + MyRefs.TIME ;
 
         Log.i("SQL Query", query);
         Cursor cursorForIteration = sqdb.rawQuery(query, null);

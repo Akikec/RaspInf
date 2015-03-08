@@ -196,7 +196,7 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
     }*/
 
 
-    private void GetDataForListWiev(List<String> list,String day){
+    public void GetDataForListWiev(List<String> list,String day){
 
         sqh = new RaspDB(getApplicationContext());
         sqdb = sqh.getWritableDatabase();
