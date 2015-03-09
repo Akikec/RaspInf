@@ -47,6 +47,7 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
         group_Text = (TextView) findViewById(R.id.textViewGroup);
+
         View contentView = findViewById(R.id.present_main_layout);
         contentView.setOnTouchListener(this);
 
@@ -167,34 +168,6 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
         }
         return false;
     }
-
-    /*@Override
-    protected Dialog onCreateDialog(int id) {
-
-        switch (id) {
-
-            case 0:
-            AlertDialog.Builder builder;
-
-            builder = new AlertDialog.Builder(this);
-            builder.setTitle("Выбирете курс");
-
-            builder.setItems(mCourseArray, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int item) {
-                    SharedPreferences.Editor editor = mSettings.edit();
-                    editor.putString(getString(R.string.course), mCourseArray[item]);
-                    Log.i("String settnigs", getString(R.string.course) + "   ||  " + mCourseArray[item]);
-                    editor.apply();
-                }
-            });
-            builder.setCancelable(false);
-            return builder.create();
-
-            default: return null;
-        }
-    }*/
-
 
     public void GetDataForListWiev(List<String> list,String day){
 
