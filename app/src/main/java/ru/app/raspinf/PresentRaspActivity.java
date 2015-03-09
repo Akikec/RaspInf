@@ -88,6 +88,10 @@ public class PresentRaspActivity extends Activity implements View.OnTouchListene
 
         group_Text.setText(mGroup);
 
+        for(int i = 0 ;i<data_array.length;i++){
+            displayRasp(this,data_array[i],i+1);
+        }
+
         super.onResume();
     }
 

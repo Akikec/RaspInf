@@ -98,7 +98,7 @@ public class PrepodActivity extends Activity implements View.OnTouchListener {
 
         //Log.i("Group", group);
 
-        String query = "SELECT " + MyRefs.TIME + ", " + MyRefs.PREDMET + " FROM " + MyRefs.RASP_TABLE_NAME
+        String query = "SELECT " + MyRefs.TIME + ", " + MyRefs.PREDMET + ", " + MyRefs.GROUP +" FROM " + MyRefs.RASP_TABLE_NAME
                 + " WHERE " //+ MyRefs.GROUP + " = '" + group
                 + " " + MyRefs.DAY + " = '" + day
                 + "' AND " + MyRefs.PREDMET + " LIKE '%" + prepodname
@@ -113,7 +113,7 @@ public class PrepodActivity extends Activity implements View.OnTouchListener {
             String time = cursorForIteration.getString(cursorForIteration.getColumnIndex(MyRefs.TIME));
 
             String[] separated = time.split("-");
-            list.add(new ListItem(separated[0].trim(),separated[1].trim(),cursorForIteration.getString(cursorForIteration.getColumnIndex(MyRefs.PREDMET))));
+            list.add(new ListItem(separated[0].trim(),separated[1].trim(),cursorForIteration.getString(cursorForIteration.getColumnIndex(MyRefs.PREDMET)),cursorForIteration.getString(cursorForIteration.getColumnIndex(MyRefs.GROUP))));
 
             Log.i("LOG_TAG", String.format("%s , %s",separated[0].trim(),separated[1].trim()) );
             //myList.add(time + "\n" + name);
