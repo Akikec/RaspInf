@@ -14,6 +14,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -104,16 +106,31 @@ public class PrepodActivity extends Activity implements View.OnTouchListener {
 
         Log.i("SQL Query", query);
         Cursor cursorForIteration = sqdb.rawQuery(query, null);
+
+        ArrayList<ListItem> list = new ArrayList<>();
+
         while (cursorForIteration.moveToNext()) {
             String time = cursorForIteration.getString(cursorForIteration.getColumnIndex(MyRefs.TIME));
-            String name = cursorForIteration.getString(cursorForIteration.getColumnIndex(MyRefs.PREDMET));
-            myList.add(time + "\n" + name);
-            Log.i("LOG_TAG", "Time:  " + time + " Predmet: " + name);
+
+            String[] separated = time.split("-");
+            list.add(new ListItem(separated[0].trim(),separated[1].trim(),cursorForIteration.getString(cursorForIteration.getColumnIndex(MyRefs.PREDMET))));
+
+            Log.i("LOG_TAG", String.format("%s , %s",separated[0].trim(),separated[1].trim()) );
+            //myList.add(time + "\n" + name);
+            //Log.i("LOG_TAG", "Time:  " + time + " Predmet: " + name);
         }
         cursorForIteration.close();
 
+        Collections.sort(list);
         sqdb.close();
         sqh.close();
+
+        for (ListItem l : list) {
+            myList.add(l.toString());
+            Log.i("String :",l.toString()  );
+        }
+
+
         return  myList;
     }
 
